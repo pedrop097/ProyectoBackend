@@ -1,40 +1,70 @@
-class User {
-    constructor(name, lastname, books, pets) {
-      this.name = name;
-      this.lastname = lastname;
-      this.books = books;
-      this.pets = pets;
-    }
-    getFullName(name, lastname) {
-      return `Nombre completo: ${name}, ${lastname}`;
-    }
-addPet(newPet){
-    this.pets.push(newPet)
-}
-petsCount(){
-    return this.pets.length;
-}
-addBook(name, autor){
-    this.books.push({name, autor});
-}
-getBooksName(){
-    return this.books.map(({name})=> name)
-}
-}
-let pets = ["perro", "gato"]
-let books = [
-    {name: "Harry Potter",
-    autor: "J.K. Rowling"
-},
-{
-    name: "Señor de los anillos",
-    autor: "J.R.R. Tolkien"
-},
-];
-let user = new User("Pedro", "Palacios", books, pets);
-user.addPet("mono");
-user.addBook("Bajo un cielo blanco", "Elizabeth Kolbert");
+const fs = require("fs");
+const file = "./products.json";
 
-console.log(user);
-console.log(`Cantidad de mascotas: ${user.petsCount()}`)
-console.log(user.getBooksName())
+class Container {
+  constructor(file) {
+    this.file = file;
+  }
+
+  async save(object) {
+    const dataToParse = await fs.readFileSync(this.file, "utf-8");
+    const dataParsed = JSON.parse(dataToParse);
+
+    const productFound = dataParsed.find(({ title }) => title == object.title);
+
+    try {
+      if (productFound) {
+       
+        console.log("El producto ya existe");
+      } else {
+   
+        object.id = dataParsed.length + 1;
+        dataParsed.push(object);
+        const updatedFile = JSON.stringify(dataParsed, null, " ");
+        fs.writeFileSync(this.file, updatedFile);
+      
+        console.log(
+          `Se ha agregado el siguiente producto: ${object.title} con el id ${object.id}`
+        );
+        return object.id;
+      }
+    } catch (error) {
+      console.log(`Se produjo un error ${error}`);
+    }
+  }
+
+  async getById(id) {
+    const dataToParse = await fs.readFileSync(this.file, "utf-8");
+    const dataParsed = JSON.parse(dataToParse);
+
+    const idFound = dataParsed.find(({ id }) => id == id);
+
+    try {
+      if (idFound) {
+        return idFound
+      } else {
+        null
+      }
+    } catch (error) {
+      console.error(`Se produjo un error en getByID: ${error}`)
+    }
+  }
+
+  getAll() {}
+
+  deleteById() {}
+
+  deleteAll() {}
+}
+
+const contenedor = new Container(file);
+
+let newObject = {
+    title : "Vino Dilema",
+    price: 1000,
+    img: "https://i.ibb.co/QF8jz0w/dilema.jpg"
+
+};
+
+contenedor.save(newObject);
+contenedor.getById(1)
