@@ -34,5 +34,17 @@
   "price": 1000,
   "img": "https://i.ibb.co/QF8jz0w/dilema.jpg",
   "id": 6
+ },
+ {
+  "title": "Vino Otro Loco Mas",
+  "price": 1000,
+  "img": "https://i.ibb.co/SwBqM66/otrolocomas.jpg",
+  "id": 7
+ },
+ {
+  "title": "Dilema Suave",
+  "price": 1000,
+  "img": "https://i.ibb.co/SwBqM66/otrolocomas.jpg",
+  "id": 8
  }
 ]

@@ -7,10 +7,10 @@ class Container {
   }
 
   async save(object) {
-    const dataToParse = await fs.readFileSync(this.file, "utf-8");
-    const dataParsed = JSON.parse(dataToParse);
+    let data = await fs.readFileSync(this.file, "utf-8");
+    let analictData = JSON.parse(data);
 
-    const productFound = dataParsed.find(({ title }) => title == object.title);
+    const productFound = analictData.find(({ title }) => title == object.title);
 
     try {
       if (productFound) {
@@ -18,9 +18,9 @@ class Container {
         console.log("El producto ya existe");
       } else {
    
-        object.id = dataParsed.length + 1;
-        dataParsed.push(object);
-        const updatedFile = JSON.stringify(dataParsed, null, " ");
+        object.id = analictData.length + 1;
+        analictData.push(object);
+        const updatedFile = JSON.stringify(analictData, null, " ");
         fs.writeFileSync(this.file, updatedFile);
       
         console.log(
@@ -34,10 +34,10 @@ class Container {
   }
 
   async getById(id) {
-    const dataToParse = await fs.readFileSync(this.file, "utf-8");
-    const dataParsed = JSON.parse(dataToParse);
+    let data = await fs.readFileSync(this.file, "utf-8");
+    let analictData = JSON.parse(data);
 
-    const idFound = dataParsed.find(({ id }) => id == id);
+    let idFound = analictData.find(({ id }) => id == id);
 
     try {
       if (idFound) {
@@ -50,12 +50,59 @@ class Container {
     }
   }
 
-  getAll() {}
+  async getAll() {
+    let data = await fs.readFileSync(this.file, "utf-8");
+    let analictData = JSON.parse(data);
+    try {
+        if (analictData.length > 0) {
+          console.log(analictData);
+          return analictData;
+        } else {
+          console.log("No hay productos disponibles");
+        }
+      } catch (error) {
+        console.error(`Se ha producido un error: ${error}`);
+      }
 
-  deleteById() {}
 
-  deleteAll() {}
-}
+  }
+
+  async deleteById(idDelete) {
+    const data = await fs.readFileSync(this.file, "utf-8");
+    const analictData = JSON.parse(dataToParse);
+
+    const idfilter = analictData.filter(({ id }) => id !== idDelete);
+ 
+    const idFound = analictData.find(({ id }) => id === idDelete);
+
+    try {
+      if (idFound) {
+        console.log(
+          `Se ha eliminado el objeto con id:${idDelete} >> [[${idFound.title}]]`
+        );
+    
+        const updatedFile = JSON.stringify(idfilter, null, " ");
+        fs.writeFileSync(this.file, updatedFile);
+      } else {
+        console.log(`No se ha encontrado el objeto con id: ${idDelete}`);
+      }
+    } catch (error) {
+      console.error(`Se ha producido un error en deleteById: ${error}`);
+    }
+    
+  }
+
+  async deleteAll() {
+    try {
+        console.log("Todos los productos fueron eliminados");
+
+        await fs.writeFileSync(this.file, "[]");
+      } catch (error) {
+        console.error(`Se ha producido un error en deleteAll: ${error}`);
+      }
+    }
+  }
+
 
 const contenedor = new Container(file);
 
@@ -66,5 +113,13 @@ let newObject = {
 
 };
 
+let newObject2 = {
+    title : "Dilema Suave",
+    price: 1000,
+    img: "https://i.ibb.co/SwBqM66/otrolocomas.jpg"
+
+};
+
 contenedor.save(newObject);
-contenedor.getById(1)
+contenedor.save(newObject2);
+//contenedor.getById(1)
