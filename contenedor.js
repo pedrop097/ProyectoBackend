@@ -1,5 +1,5 @@
 const fs = require("fs");
-const file = "./products.json";
+
 
 class Container {
   constructor(file) {
@@ -103,23 +103,6 @@ class Container {
     }
   }
 
+  module.exports = Container;
 
-const contenedor = new Container(file);
-
-let newObject = {
-    title : "Vino Dilema 2",
-    price: 1000,
-    img: "https://i.ibb.co/QF8jz0w/dilema.jpg"
-
-};
-
-let newObject2 = {
-    title : "Dilema",
-    price: 1000,
-    img: "https://i.ibb.co/SwBqM66/otrolocomas.jpg"
-
-};
-
-contenedor.save(newObject);
-contenedor.save(newObject2);
-//contenedor.getById(1)
+   
