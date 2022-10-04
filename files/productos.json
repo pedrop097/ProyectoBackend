@@ -3,24 +3,37 @@
   "title": "Vodka sminorff",
   "price": 1000,
   "thumbnail": "https://i.ibb.co/QF8jz0w/dilema.jpg",
+  "timestamp":"01/10/2022 18:15:35",
+  "code":"B3",
+  "stock":40,
   "id": 1
  },
  {
   "title": "Cerveza Corona",
   "price": 1200,
   "thumbnail": "https://i.ibb.co/NWjpH8n/corona.jpg",
+  "timestamp":"01/10/2022 18:27:25",
+  "code":"B2",
+  "stock":30,
   "id": 2
  },
  {
   "title": "Vino Alma Mora",
   "price": 1200,
   "thumbnail": "https://i.ibb.co/fNvDhJQ/almamora.jpg",
+  "timestamp":"01/10/2022 18:20:35",
+  "code":"B4",
+  "stock":20,
   "id": 3
  },
  {
   "title": "Vino Dilema",
   "price": 1000,
+  "timestamp":"01/10/2022 18:35:18",
   "thumbnail": "https://i.ibb.co/QF8jz0w/dilema.jpg",
+  "code":"B5",
+  "stock":50,
   "id": 4
-  }
- ]
+ }
+
+]

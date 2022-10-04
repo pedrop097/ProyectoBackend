@@ -1,125 +1,24 @@
-const fs = require("fs");
-const file = "./products.json";
-
-class Container {
-  constructor(file) {
-    this.file = file;
-  }
-
-  async save(object) {
-    let data = await fs.readFileSync(this.file, "utf-8");
-    let analictData = JSON.parse(data);
-
-    const productFound = analictData.find(({ title }) => title == object.title);
-
-    try {
-      if (productFound) {
-       
-        console.log("El producto ya existe");
-      } else {
-   
-        object.id = analictData.length + 1;
-        analictData.push(object);
-        const updatedFile = JSON.stringify(analictData, null, " ");
-        fs.writeFileSync(this.file, updatedFile);
-      
-        console.log(
-          `Se ha agregado el siguiente producto: ${object.title} con el id ${object.id}`
-        );
-        return object.id;
-      }
-    } catch (error) {
-      console.log(`Se produjo un error ${error}`);
-    }
-  }
-
-  async getById(id) {
-    let data = await fs.readFileSync(this.file, "utf-8");
-    let analictData = JSON.parse(data);
-
-    let idFound = analictData.find(({ id }) => id == id);
-
-    try {
-      if (idFound) {
-        return idFound
-      } else {
-        null
-      }
-    } catch (error) {
-      console.error(`Se produjo un error en getByID: ${error}`)
-    }
-  }
-
-  async getAll() {
-    let data = await fs.readFileSync(this.file, "utf-8");
-    let analictData = JSON.parse(data);
-    try {
-        if (analictData.length > 0) {
-          console.log(analictData);
-          return analictData;
-        } else {
-          console.log("No hay productos disponibles");
-        }
-      } catch (error) {
-        console.error(`Se ha producido un error: ${error}`);
-      }
+const express = require('express');
+const productosRoutes = require("./api/routes/productos");
+const carritoRoutes = require("./api/routes/carrito");
+const app = express();
+const port = process.env.PORT || 8080;
 
 
-  }
+app.use(express.urlencoded({extended:true}));
+app.use(express.json());
+app.use(express.static('api'));
+const context = process.env.CONTEXT || 'api';
+app.use('/api/productos', productosRoutes);
+app.use('/api/carritos', carritoRoutes);
 
-  async deleteById(idDelete) {
-    const data = await fs.readFileSync(this.file, "utf-8");
-    const analictData = JSON.parse(dataToParse);
-
-    const idfilter = analictData.filter(({ id }) => id !== idDelete);
- 
-    const idFound = analictData.find(({ id }) => id === idDelete);
-
-    try {
-      if (idFound) {
-        console.log(
-          `Se ha eliminado el objeto con id:${idDelete} >> [[${idFound.title}]]`
-        );
-    
-        const updatedFile = JSON.stringify(idfilter, null, " ");
-        fs.writeFileSync(this.file, updatedFile);
-      } else {
-        console.log(`No se ha encontrado el objeto con id: ${idDelete}`);
-      }
-    } catch (error) {
-      console.error(`Se ha producido un error en deleteById: ${error}`);
-    }
-    
-  }
-
-  async deleteAll() {
-    try {
-        console.log("Todos los productos fueron eliminados");
-
-        await fs.writeFileSync(this.file, "[]");
-      } catch (error) {
-        console.error(`Se ha producido un error en deleteAll: ${error}`);
-      }
-    }
-  }
+app.get('/', (req,res)=>{
+    res.send("Main page")
+})
 
 
-const contenedor = new Container(file);
 
-let newObject = {
-    title : "Vino Dilema 2",
-    price: 1000,
-    img: "https://i.ibb.co/QF8jz0w/dilema.jpg"
 
-};
-
-let newObject2 = {
-    title : "Dilema",
-    price: 1000,
-    img: "https://i.ibb.co/SwBqM66/otrolocomas.jpg"
-
-};
-
-contenedor.save(newObject);
-contenedor.save(newObject2);
-//contenedor.getById(1)
+app.listen(port, () => {
+    console.log(`Listening on port ${port}...`);
+});
