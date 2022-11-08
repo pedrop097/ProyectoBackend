@@ -1,118 +1,48 @@
-import express from 'express'
-const { Router } = express
+import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
+import ContainerFake from './containers/ContainerFake.js';
+import ContainerFs from './containers/ContainerFs.js';
 
-import {
-    productosDao as productosApi,
-    carritosDao as carritosApi
-} from '../daos/index.js'
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
-//------------------------------------------------------------------------
-// instancio servidor
+const productsApi = new ContainerFake();
+const messagesApi = new ContainerFs('./mensajes.json');
 
-const app = express()
+// conexión con socket
+io.on('connection', async (socket) => {
+	console.log('Un cliente se ha conectado');
 
-//--------------------------------------------
-// permisos de administrador
+	const chat = await messagesApi.getNormalizedMensajes();
+	console.log(chat);
+	socket.emit('chat', chat);
 
-const esAdmin = true
+	socket.on('new-message', async (data) => {
+		await messagesApi.save(data);
+		const chat = await messagesApi.getNormalizedMensajes();
+		io.sockets.emit('chat', chat);
+	});
+});
 
-function crearErrorNoEsAdmin(ruta, metodo) {
-    const error = {
-        error: -1,
-    }
-    if (ruta && metodo) {
-        error.descripcion = `ruta '${ruta}' metodo '${metodo}' no autorizado`
-    } else {
-        error.descripcion = 'no autorizado'
-    }
-    return error
-}
+app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
 
-function soloAdmins(req, res, next) {
-    if (!esAdmin) {
-        res.json(crearErrorNoEsAdmin())
-    } else {
-        next()
-    }
-}
+app.get('/', (req, res) => {
+	res.sendFile(__dirname + '/index.html');
+});
 
-//--------------------------------------------
-// configuro router de productos
+// Llamo a getproducts y le paso 5, para generar 5 productos random con faker
+app.get('/api/productos-test', (req, res) => {
+	res.json(productsApi.getProducts(5));
+});
 
-const productosRouter = new Router()
+const PORT = process.env.PORT || 8080;
 
-productosRouter.get('/', async (req, res) => {
-    const productos = await productosApi.listarAll()
-    res.json(productos)
-})
-
-productosRouter.get('/:id', async (req, res) => {
-    res.json(await productosApi.listar(req.params.id))
-})
-
-productosRouter.post('/', soloAdmins, async (req, res) => {
-    res.json(await productosApi.guardar(req.body))
-})
-
-productosRouter.put('/:id', soloAdmins, async (req, res) => {
-    res.json(await productosApi.actualizar(req.body))
-})
-
-productosRouter.delete('/:id', soloAdmins, async (req, res) => {
-    res.json(await productosApi.borrar(req.params.id))
-})
-
-//--------------------------------------------
-// configuro router de carritos
-
-const carritosRouter = new Router()
-
-carritosRouter.get('/', async (req, res) => {
-    res.json((await carritosApi.listarAll()).map(c => c.id))
-})
-
-carritosRouter.post('/', async (req, res) => {
-    res.json(await carritosApi.guardar())
-})
-
-carritosRouter.delete('/:id', async (req, res) => {
-    res.json(await carritosApi.borrar(req.params.id))
-})
-
-//--------------------------------------------------
-// router de productos en carrito
-
-carritosRouter.get('/:id/productos', async (req, res) => {
-    const carrito = await carritosApi.listar(req.params.id)
-    res.json(carrito.productos)
-})
-
-carritosRouter.post('/:id/productos', async (req, res) => {
-    const carrito = await carritosApi.listar(req.params.id)
-    const producto = await productosApi.listar(req.body.id)
-    carrito.productos.push(producto)
-    await carritosApi.actualizar(carrito)
-    res.end()
-})
-
-carritosRouter.delete('/:id/productos/:idProd', async (req, res) => {
-    const carrito = await carritosApi.listar(req.params.id)
-    const index = carrito.productos.findIndex(p => p.id == req.params.idProd)
-    if (index != -1) {
-        carrito.productos.splice(index, 1)
-        await carritosApi.actualizar(carrito)
-    }
-    res.end()
-})
-
-//--------------------------------------------
-// configuro el servidor
-
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use(express.static('public'))
-
-app.use('/api/productos', productosRouter)
-app.use('/api/carritos', carritosRouter)
-
-export default app
+const srv = server.listen(PORT, () => {
+	console.log(
+		`Servidor Http con Websockets en el puerto ${srv.address().port}`
+	);
+});
+srv.on('error', (error) => console.log(`Error en servidor ${error}`));
