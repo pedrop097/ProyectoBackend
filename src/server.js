@@ -1,10 +1,35 @@
 import express from 'express';
+import session from 'express-session';
 import http from 'http';
 import { Server } from 'socket.io';
 import ContainerFake from './containers/ContainerFake.js';
 import ContainerFs from './containers/ContainerFs.js';
+import path from 'path';
+import MongoStore from 'connect-mongo';
+
 
 const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(
+	session({
+		store: MongoStore.create({
+			mongoUrl: 'mongodb+srv://cvarela:never123@cluster0.hz9hxot.mongodb.net/sessions',
+			mongoOptions: { useNewUrlParser: true, useUnifiedTopology: true },
+		}),
+
+		secret: 'secret',
+		resave: false,
+		saveUninitialized: false,
+		rolling: true,
+		cookie: {
+			maxAge: 10 * 1000 * 60,
+		},
+	})
+);
+
+
 const server = http.createServer(app);
 const io = new Server(server);
 
@@ -26,17 +51,51 @@ io.on('connection', async (socket) => {
 	});
 });
 
-app.use(express.static('public'));
-app.use(express.urlencoded({ extended: true }));
+const auth = (req, res, next) => {
+	if (req.session.usuario) {
+		next();
+	} else {
+		res.redirect('/login');
+	}
+};
 
-app.get('/', (req, res) => {
-	res.sendFile(__dirname + '/index.html');
+const isLogged = (req, res, next) => {
+	if (!req.session.usuario) {
+		next();
+	} else {
+		res.redirect('/');
+	}
+};
+
+// MUESTRO EL FORMULARIO DEL LOGIN
+app.get('/login', isLogged, (req, res) => {
+	res.sendFile(path.resolve('login.html'));
 });
 
-// Llamo a getproducts y le paso 5, para generar 5 productos random con faker
+app.post('/login', (req, res) => {
+	req.session.usuario = req.body.usuario;
+	res.redirect('/');
+});
+
+app.get('/username', (req, res) => {
+	res.json(req.session.usuario);
+});
+
+// MUESTRO EL SALUDO AL USUARIO
+app.get('/logout', (req, res) => {
+	const usuario = req.session.usuario;
+	req.session.destroy(function (err) {
+		if (err) return next(err);
+		res.json(usuario);
+	});
+});
+
 app.get('/api/productos-test', (req, res) => {
 	res.json(productsApi.getProducts(5));
 });
+
+app.use(auth);
+app.use(express.static('src'));
 
 const PORT = process.env.PORT || 8080;
 
